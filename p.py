@@ -51,6 +51,14 @@ def hash(expr): #Se define la función hash, que recibe una cadena expr (la expr
 
 
 def kleene_recursive(expr): #Procesa recursivamente la expresión regular para construir el autómata finito no determinista (AFN) correspondiente.
+    # Caso especial: lenguaje vacío (∅) → no acepta nada
+    if expr == 'v':
+        start = new_state()
+        end = new_state()
+        # No agregamos ninguna transición
+        return start, end
+    
+
     global transitions #Usa la variable global transitions para que pueda guardar las transiciones de cada llamada recursiva.
     #CASO BASE:
     # Si la expresión es vacía, crea un estado inicial y final, y agrega una transición vacía (λ) entre ellos.
@@ -139,21 +147,22 @@ def kleene_recursive(expr): #Procesa recursivamente la expresión regular para c
             return left_start, right_end
 
     # Procesar estrella
-    if expr[-1] == '*':
-        subexpr = expr[:-1]
-        sub_start, sub_end = kleene_recursive(subexpr)
+    if expr[-1] == '*': # Detecta si la última parte de la expresión es un *.
+        subexpr = expr[:-1] # Guarda la subexpresión sin el *
+        sub_start, sub_end = kleene_recursive(subexpr) #llama recursivamente para obtener el autómata de la subexpresión
+        # el sub automata que tiene tendra su propia sub entrada y sub salida
 
-        start = new_state()
-        end = new_state()
+        start = new_state() # creamos un nuevo estado inicial que sera el principal
+        end = new_state() # creamos un nuevo estado final que sera el principal
 
-        transitions.append((start, sub_start, 'λ'))
-        transitions.append((sub_end, sub_start, 'λ'))
-        transitions.append((start, end, 'λ'))
-        transitions.append((sub_end, end, 'λ'))
+        transitions.append((start, sub_start, 'λ')) # entrada del ciclo
+        transitions.append((sub_end, sub_start, 'λ')) # repeticion del ciclo
+        transitions.append((start, end, 'λ')) # opcion de no entrar al ciclo
+        transitions.append((sub_end, end, 'λ')) # salida del ciclo
 
-        return start, end
+        return start, end # Devuelve los extremos del nuevo sub-autómata que representa "subexpr"*
 
-    # Si llega acá, hay un error de parsing
+    # Si llega acá, hay un error de parsing (proceso de leer y analizar una expresión o una secuencia de símbolos, para entender su estructura según ciertas reglas gramaticales o sintácticas.)
     raise ValueError(f"Expresion no valida o no reconocida: {expr}")
 
 def draw_nfa(expr):
