@@ -130,6 +130,27 @@ def kleene_recursive(expr):
 
             combined_expr = add_concatenation_symbols(combined_expr)
             return kleene_recursive(combined_expr)
+        
+     # Procesar operador hash (#): e1!e2=e1(e1+e2)
+    depth = 0
+    for i in range(len(expr)):
+        if expr[i] == '(':
+            depth += 1
+        elif expr[i] == ')':
+            depth -= 1
+        elif expr[i] == '!' and depth == 0:
+            if i == 0:
+                raise ValueError("Símbolo '!' sin expresión anterior")
+
+            e = expr[:i]           # lo que está antes del !
+            rest = expr[i+1:]      # lo que está después del !
+
+            left_expr = f"({e}*)"
+            right_expr = f"({e}+{rest})"
+            combined_expr = f"({left_expr}{right_expr})"
+
+            combined_expr = add_concatenation_symbols(combined_expr)
+            return kleene_recursive(combined_expr)
 
 
     # Si llega acá, hay un error de parsing
